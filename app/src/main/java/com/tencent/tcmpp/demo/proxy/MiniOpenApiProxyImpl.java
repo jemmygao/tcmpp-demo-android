@@ -19,7 +19,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 @ProxyService(proxy = MiniOpenApiProxy.class)
-public class MiniOpenApiProxyImpl implements MiniOpenApiProxy {
+public class MiniOpenApiProxyImpl extends MiniOpenApiProxy {
     private static final String TAG = "MiniOpenApiProxyImpl";
 
     @Override
