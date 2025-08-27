@@ -83,4 +83,21 @@
         <item>français</item>
         <item>Bahasa indonesia</item>
     </string-array>
+
+    <string name="tcmpp_payment_choose">Choose payment method</string>
+    <string name="tcmpp_payment_add_card">Fill in bank card information</string>
+    <string name="tcmpp_payment_we_chat_pay">WeChat Pay</string>
+    <string name="tcmpp_payment_add">Add bank card</string>
+    <string name="tcmpp_payment_add_one_card">Add a bank card</string>
+    <string name="tcmpp_payment_add_card_num">Bank card number</string>
+    <string name="tcmpp_payment_add_card_user">Bank card holder</string>
+    <string name="tcmpp_payment_add_card_time">Bank card date:MM/YY</string>
+    <string name="tcmpp_payment_add_card_safe_tip">Financial security guarantee</string>
+    <string name="tcmpp_payment_add_card_safe_confirm">Save</string>
+    <string name="tcmpp_payment_add_card_ccv">CCV</string>
+    <string name="tcmpp_payment_add_card_safe_tips_2">Personal Payment Information Security Protection</string>
+    <string name="tcmpp_payment_type">Payment method</string>
+    <string name="tcmpp_payment_confirm">Confirm the payment</string>
+
+    <string name="tcmpp_tecent_map_sdk_key">QAZBZ-2HCKW-SWAR4-ORKF2-JDHL3-IAFBO</string>
 </resources>

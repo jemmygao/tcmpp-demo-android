@@ -26,7 +26,7 @@ public class PaymentResultActivity extends AppCompatActivity {
 
         String totalFee = getIntent().getStringExtra("total");
         if (!TextUtils.isEmpty(totalFee)) {
-            float value = Integer.parseInt(totalFee) / 100.0f;
+            float value = Integer.parseInt(totalFee) / 10000.0f;
             TextView textView = findViewById(R.id.tv_pay_sum);
             textView.setText(value+"");
         }

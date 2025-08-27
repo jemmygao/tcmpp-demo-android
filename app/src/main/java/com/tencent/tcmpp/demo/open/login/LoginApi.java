@@ -43,12 +43,23 @@ public class LoginApi {
         public String userId;
         public String avatarUrl;
         public String token;
+        public String email;
+        public String phone;
 
         public UserInfo(String name, String id, String url, String token) {
             this.userId = id;
             this.userName = name;
             this.avatarUrl = url;
             this.token = token;
+        }
+
+        public UserInfo(String name, String id, String url, String token, String email, String phone) {
+            this.userId = id;
+            this.userName = name;
+            this.avatarUrl = url;
+            this.token = token;
+            this.email = email;
+            this.phone = phone;
         }
     }
 
@@ -66,8 +77,11 @@ public class LoginApi {
                 String name = jsonObject.optString("userName");
                 String url = jsonObject.optString("iconUrl");
                 String token = jsonObject.optString("token");
+                String uid = jsonObject.optString("userId");
+                String phone = jsonObject.optString("phoneNumber");
+                String email = jsonObject.optString("email");
                 if (!TextUtils.isEmpty(token)){
-                    callback.value(0, "", new UserInfo(name, userId, url, token));
+                    callback.value(0, "", new UserInfo(userId, uid, url, token, email, phone));
 
                 }else{
                     callback.value(100, "empty token", null);
@@ -115,6 +129,7 @@ public class LoginApi {
     private void request(String apiUrl, JSONObject body, MiniCallback<JSONObject> callback) {
         getRequestClient().newCall(new Request.Builder()
                 .addHeader("Content-Type", "application/json")
+                .addHeader("TC-SUPER-APP-VERSION", "2.0")
                 .url(apiUrl)
                 .post(RequestBody.create(body.toString().getBytes()))
                 .build()).enqueue(new Callback() {

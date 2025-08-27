@@ -182,6 +182,9 @@ dependencies {
         implementation project.ext.TCMPPDeps['mini_extra_wifi']
         //media support
         implementation project.ext.TCMPPDeps['mini_extra_media_support_lite']
+        //pdf
+        implementation project.ext.TCMPPDeps['mini_extra_pdf']
+        implementation project.ext.TCMPPDeps['mini_pdflib']
         //mini game
         implementation project.ext.TCMPPDeps['mini_extra_mbengine']
         //v8 engine

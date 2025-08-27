@@ -17,7 +17,7 @@ public class PayJsPlugin extends BaseJsPlugin {
             JSONObject data = paramsObject.optJSONObject("data");
             double count = data.optDouble("money");
             if (!mIsContainer && !mIsDestroyed) {
-                CustomPayDemo.requestPay(mMiniAppContext.getAttachedActivity(), count, (retCode, msg) -> {
+                CustomPayDemo.requestPay(mMiniAppContext.getAttachedActivity(), count, (retCode, msg, dialog) -> {
                     if (retCode == 0) {
                         req.ok();
                     } else {

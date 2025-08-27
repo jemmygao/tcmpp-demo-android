@@ -93,6 +93,12 @@ dependencies {
         exclude(group: "com.tencent.tcmpp.android",module:"mini_core")
     }
 
+    tcmppDeps(project.ext.TCMPPDeps['mini_extra_pdf']) {
+        exclude(group: "com.tencent.tcmpp.android",module:"mini_core")
+    }
+    tcmppDeps(project.ext.TCMPPDeps['mini_pdflib'])
+
+
 //    //calendar support
 //    implementation project.ext.TCMPPDeps['mini_extra_calendar']
 //    //network support (tcp/udp/mdns)

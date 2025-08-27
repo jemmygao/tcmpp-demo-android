@@ -22,75 +22,6 @@ import org.json.JSONObject;
 public class MiniOpenApiProxyImpl extends MiniOpenApiProxy {
     private static final String TAG = "MiniOpenApiProxyImpl";
 
-    @Override
-    public void login(IMiniAppContext miniAppContext, JSONObject params, AsyncResult result) {
-        QMLog.d(TAG, "login:" + params);
-        //mock api
-        if (GlobalConfigureUtil.getGlobalConfig(miniAppContext.getContext()).mockApi) {
-            JSONObject retData = new JSONObject();
-            try {
-                retData.put("code", "9527");
-            } catch (JSONException e) {
-            }
-            result.onReceiveResult(true, retData);
-            return;
-        }
-        //real api
-        Login login = Login.g(miniAppContext.getContext());
-        LoginApi.UserInfo userInfo = login.getUserInfo();
-        if (userInfo == null) {
-            getAuthCodeWithLogin(miniAppContext, result);
-        } else {
-            login.getAuthCode(miniAppContext.getMiniAppInfo().appId, (i, s, s2) -> {
-                if (i == 0) {
-                    JSONObject retData = new JSONObject();
-                    try {
-                        retData.put("code", s2);
-                        result.onReceiveResult(true, retData);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        callBackError(-1, "json exception:" + e, result);
-                    }
-                } else {
-                    if (i == LoginApi.ERROR_TOKEN) {
-                        getAuthCodeWithLogin(miniAppContext, result);
-                    } else {
-                        callBackError(i, s, result);
-                    }
-                }
-            });
-        }
-    }
-
-    private void getAuthCodeWithLogin(IMiniAppContext miniAppContext, AsyncResult result) {
-        Login login = Login.g(miniAppContext.getContext());
-        TmfMiniSDK.callMainProcessPlugin(OpenDataIPC.OPEN_DATA_IPC_EVENT_GET_USER_ID, new Bundle(), (b, bundle) -> {
-            if (b) {
-                String userId = bundle.getString("userId");
-                login.login(userId, "123456", (i, s, userInfo1) -> {
-                    if (i == 0) {
-                        login.getAuthCode(miniAppContext.getMiniAppInfo().appId, (i1, s1, s2) -> {
-                            if (i1 == 0) {
-                                JSONObject retData = new JSONObject();
-                                try {
-                                    retData.put("code", s2);
-                                    result.onReceiveResult(true, retData);
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                    callBackError(-1, "json exception:" + e, result);
-                                }
-                            }
-                        });
-                    } else {
-                        callBackError(i, s, result);
-                    }
-                });
-            } else {
-                callBackError(-2, "get userId failed!", result);
-            }
-        });
-    }
-
     private void callBackError(int code, String message, AsyncResult result) {
         JSONObject retData = new JSONObject();
         try {
@@ -126,7 +57,7 @@ public class MiniOpenApiProxyImpl extends MiniOpenApiProxy {
             JSONObject retData = new JSONObject();
             final JSONObject userInfo = new JSONObject();
             try {
-                userInfo.put("nickName","mockUser");
+                userInfo.put("nickName", "mockUser");
                 userInfo.put("avatarUrl", "");
                 userInfo.put("gender", 0);
                 userInfo.put("country", "CN");
@@ -175,7 +106,7 @@ public class MiniOpenApiProxyImpl extends MiniOpenApiProxy {
             JSONObject retData = new JSONObject();
             final JSONObject userInfo = new JSONObject();
             try {
-                userInfo.put("nickName","mockUser");
+                userInfo.put("nickName", "mockUser");
                 userInfo.put("avatarUrl", "");
                 userInfo.put("gender", 0);
                 userInfo.put("country", "CN");
@@ -217,32 +148,8 @@ public class MiniOpenApiProxyImpl extends MiniOpenApiProxy {
     }
 
     @Override
-    public void getPhoneNumber(IMiniAppContext miniAppContext, JSONObject params, AsyncResult result) {
-        QMLog.d(TAG, "getPhoneNumber:" + params);
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("key", "wx.getPhoneNumber");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        result.onReceiveResult(true, jsonObject);
-    }
-
-    @Override
     public void requestPayment(IMiniAppContext miniAppContext, JSONObject params, AsyncResult result) {
         QMLog.d(TAG, "requestPayment:" + params);
-        JSONObject jsonObject = new JSONObject();
-        try {
-            jsonObject.put("key", "wx.requestPayment");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        PaymentManager.g(miniAppContext.getContext()).startPayment(miniAppContext, params, result);
-//        result.onReceiveResult(true, jsonObject);
-    }
-
-    @Override
-    public void requestMidasPaymentGameItem(IMiniAppContext iMiniAppContext, JSONObject jsonObject, AsyncResult asyncResult) {
-        QMLog.d(TAG, "requestPayment:" + jsonObject);
+        PaymentManager.g().startPayment(miniAppContext, params, result);
     }
 }

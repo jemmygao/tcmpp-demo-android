@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.DialogInterface.OnDismissListener;
 import android.os.Bundle;
 import android.os.Handler;
@@ -15,7 +16,9 @@ import android.view.WindowManager;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import com.tencent.tcmpp.demo.R;
+
 
 public class CustomPayDemo {
 
@@ -23,7 +26,7 @@ public class CustomPayDemo {
 
     public static void requestPay(Activity activity, double money, ICustomPayCallback callback) {
         if (activity == null) {
-            callback.onPayResult(-1, "param activity can not be null");
+            callback.onPayResult(-1, "param activity can not be null", null);
         }
         showPwdDialog(activity, money, dialog -> {
             String pwd = ((CustomPayDialog) dialog).getInputText();
@@ -31,7 +34,7 @@ public class CustomPayDemo {
             if (!TextUtils.isEmpty(pwd)) {
                 simulatePay(activity, pwd, money, callback);
             } else {
-                callback.onPayResult(-2, "canceled by user");
+                callback.onPayResult(-2, "canceled by user", null);
             }
         });
     }
@@ -50,10 +53,10 @@ public class CustomPayDemo {
             @Override
             public void run() {
                 loadingDialog.dismiss();
-                if (TextUtils.equals(pwd, "666666")){
-                    callback.onPayResult(0, "ok");
-                }else{
-                    callback.onPayResult(-3, "wrong pwd");
+                if (TextUtils.equals(pwd, "666666")) {
+                    callback.onPayResult(0, "ok", null);
+                } else {
+                    callback.onPayResult(-3, "wrong pwd", null);
                 }
             }
         }, 1000);
@@ -66,18 +69,53 @@ public class CustomPayDemo {
         TextView mTvForgetPwd;
 
         TextView mTvCount;
+        TextView mPayType;
+        ImageView mPayTypeIv;
 
         double mCount;
 
         String mInputText;
+        private ICustomPayCallback payCallback;
+        private int payStatus = -1;//-1 Password not entered; 1. Enter password
+        private int src;
+        private String name;
 
         public String getInputText() {
             return mInputText;
         }
 
+
         public CustomPayDialog(Context context, double count, int themeId) {
             super(context, themeId);
             mCount = count;
+            setOnDismissListener(new OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    if (null != payCallback) {
+                        payCallback.onPayResult(payStatus, "", dialog);
+                    }
+                }
+            });
+        }
+
+        public CustomPayDialog(Context context, double count, int themeId, int src, String desc) {
+            super(context, themeId);
+            mCount = count;
+            setOnDismissListener(new OnDismissListener() {
+                @Override
+                public void onDismiss(DialogInterface dialog) {
+                    if (null != payCallback) {
+                        payCallback.onPayResult(payStatus, "", dialog);
+                    }
+                }
+            });
+            this.name = desc;
+            this.src = src;
+        }
+
+
+        public void addPayResultListen(ICustomPayCallback payCallback) {
+            this.payCallback = payCallback;
         }
 
         @Override
@@ -85,16 +123,25 @@ public class CustomPayDemo {
             super.onCreate(savedInstanceState);
             setContentView(R.layout.applet_dialog_pay);
             mTvCount = findViewById(R.id.tvCount);
-            mTvCount.setText(String.valueOf(mCount));
+            mTvCount.setText(String.format("%.2f",mCount));
             mPwdInputView = findViewById(R.id.pwd);
             mPwdInputView.setOnInputFinishListener(text -> {
                 mInputText = text;
+                payStatus = 1;
                 dismiss();
             });
             mCloseBtn = findViewById(R.id.close);
             mCloseBtn.setOnClickListener(this);
             mTvForgetPwd = findViewById(R.id.tvForgetPwd);
             mTvForgetPwd.setOnClickListener(this);
+            mPayType = findViewById(R.id.pay_dialog_type);
+            mPayTypeIv = findViewById(R.id.pay_dialog_icon);
+            if (src != 0) {
+                mPayTypeIv.setImageResource(src);
+            }
+            if (!TextUtils.isEmpty(name)) {
+                mPayType.setText(name);
+            }
 
             getWindow().clearFlags(
                     WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE | WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM);
@@ -104,14 +151,13 @@ public class CustomPayDemo {
 
         @Override
         public void onClick(View v) {
-            switch (v.getId()) {
-                case R.id.close:
-                    cancel();
-                    break;
-                case R.id.tvForgetPwd:
-                    Toast.makeText(v.getContext(), "Current password:666666", Toast.LENGTH_SHORT).show();
-                    break;
+            int id = v.getId();
+            if (id == R.id.close) {
+                cancel();
+            } else if (id == R.id.tvForgetPwd) {
+                Toast.makeText(v.getContext(), "Current password:666666", Toast.LENGTH_SHORT).show();
             }
         }
     }
+
 }

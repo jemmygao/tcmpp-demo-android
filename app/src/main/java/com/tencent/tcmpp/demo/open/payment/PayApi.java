@@ -1,17 +1,12 @@
 package com.tencent.tcmpp.demo.open.payment;
 
-import android.util.Log;
-
 import androidx.annotation.NonNull;
 
-import com.tencent.tcmpp.demo.utils.XmlConverter;
-
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.TimeUnit;
 
@@ -29,19 +24,13 @@ public class PayApi {
     private final int ERR_OKHTTP_ERROR = -1;
     private final int ERR_CHECK_ORDER_FAILED = -10;
     private OkHttpClient mRequestClient;
+    public static final int PAY_TYPE_APP = 0;
+    public static final int PAY_TYPE_GAME = 1;
 
 
-    public void checkOrder(String appId, JSONObject params, PayCallBack payCallBack) {
-        String nonce = generateRandomString(32);
-        String prepay_ID = params.optString("prepayId");
-        Map<String, String> map = new HashMap<>();
-        map.put("appid", appId);
-        map.put("nonce_str", nonce);
-        map.put("prepay_id", prepay_ID);
-
-        String xmlData = XmlConverter.mapToXml(map, "xml");
-        String checkOrderApi = PayEnvironment.API_CHECK_ORDER;
-        request(checkOrderApi, xmlData, new Callback() {
+    public void checkOrder(JSONObject params, int type, PayCallBack payCallBack) {
+        String checkOrderApi = type == PAY_TYPE_GAME ? PayEnvironment.API_CHECK_GAME_ORDER : PayEnvironment.API_CHECK_APP_ORDER;
+        request(checkOrderApi, params.toString(), new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 payCallBack.onFailed(ERR_OKHTTP_ERROR, e.getMessage());
@@ -50,45 +39,44 @@ public class PayApi {
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
                 if (response.isSuccessful() && null != response.body()) {
-                    String respBody = response.body().string();
                     try {
-                        Map<String, String> data = XmlConverter.xmlStringToMap(respBody);
-                        String return_code = data.get("return_code");
-                        if ("SUCCESS".equals(return_code)) {
-                            JSONObject jsonObject = new JSONObject();
-
-                            jsonObject.put("prepay_id", data.get("prepay_id"));
-                            jsonObject.put("out_trade_no", data.get("out_trade_no"));
-                            jsonObject.put("total_fee", data.get("total_fee"));
-                            Log.e(TAG, "check order result " + jsonObject);
-                            payCallBack.onSuccess(jsonObject);
-                        } else {
-                            payCallBack.onFailed(ERR_CHECK_ORDER_FAILED, "check order failed");
+                        JSONObject raw = new JSONObject(response.body().string());
+                        String retCode = raw.optString("returnCode");
+                        String errMst = raw.optString("returnMessage");
+                        if (!"0".equals(retCode)) {
+                            payCallBack.onFailed(ERR_CHECK_ORDER_FAILED, errMst);
+                            return;
                         }
-                    } catch (Exception e) {
-                        payCallBack.onFailed(ERR_CHECK_ORDER_FAILED, "internal failed");
+                        JSONObject data = raw.optJSONObject("data");
+                        if (null != data) {
+                            payCallBack.onSuccess(data);
+                        } else {
+                            payCallBack.onFailed(ERR_CHECK_ORDER_FAILED, "failed data error");
+                        }
+
+                    } catch (JSONException e) {
+                        payCallBack.onFailed(ERR_CHECK_ORDER_FAILED, "failed http error");
                     }
                 } else {
                     payCallBack.onFailed(response.code(), "failed http error");
                 }
             }
         });
-
     }
 
-    public void payOrder(JSONObject params, PayCallBack payCallBack) {
-        String prepayId = params.optString("prepay_id");
-        String outTradeNo = params.optString("out_trade_no");
-        String totalFee = params.optString("total_fee");
-
-        Map<String, String> map = new HashMap<>();
-        map.put("prepay_id", prepayId);
-        map.put("out_trade_no", outTradeNo);
-        map.put("total_fee", totalFee);
-
-        String xmlData = XmlConverter.mapToXml(map, "xml");
-        String payApi = PayEnvironment.API_PAY_ORDER;
-        request(payApi, xmlData, new Callback() {
+    public void payOrder(JSONObject params, PayCallBack payCallBack, String payModel, String payModelId) {
+        int actualAmount = params.optInt("actualAmount");
+        String payId = params.optString("payId");
+        JSONObject reqParam = new JSONObject();
+        try {
+            reqParam.put("payId", payId);
+            reqParam.put("payAmount", actualAmount);
+            reqParam.put("payModel", payModel);
+            reqParam.put("payModelId", payModelId);
+            reqParam.put("cardId", "");
+        } catch (JSONException ignored) {
+        }
+        request(PayEnvironment.API_PAY_ORDER, reqParam.toString(), new Callback() {
             @Override
             public void onFailure(@NonNull Call call, @NonNull IOException e) {
                 payCallBack.onFailed(ERR_OKHTTP_ERROR, e.getMessage());
@@ -96,35 +84,37 @@ public class PayApi {
 
             @Override
             public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (response.isSuccessful() && null != response.body()) {
-                    String respBody = response.body().string();
-                    try {
-                        Map<String, String> data = XmlConverter.xmlStringToMap(respBody);
-                        String return_code = data.get("return_code");
-                        if ("SUCCESS".equals(return_code)) {
-                            JSONObject jsonObject = new JSONObject();
-                            Log.e(TAG, "pay  order result " + jsonObject);
-                            payCallBack.onSuccess(jsonObject);
-                        } else {
-                            payCallBack.onFailed(ERR_CHECK_ORDER_FAILED, "check order failed");
-                        }
-                    } catch (Exception e) {
-                        payCallBack.onFailed(ERR_CHECK_ORDER_FAILED, "internal failed");
-                    }
-                } else {
+                if (!response.isSuccessful() || null == response.body()) {
                     payCallBack.onFailed(response.code(), "failed http error");
+                    return;
+                }
+                String respBody = response.body().string();
+                try {
+                    JSONObject ret = new JSONObject(respBody);
+                    String retCode = ret.optString("returnCode");
+                    String errMst = ret.optString("returnMessage");
+                    if (!"0".equals(retCode)) {
+                        payCallBack.onFailed(ERR_CHECK_ORDER_FAILED, errMst);
+                        return;
+                    }
+                    ret.put("paymentAmount", actualAmount + "");
+                    payCallBack.onSuccess(ret);
+                } catch (JSONException e) {
+                    payCallBack.onFailed(ERR_CHECK_ORDER_FAILED, e.getMessage());
                 }
             }
         });
+
 
     }
 
 
     private void request(String apiUrl, String xmlData, Callback callback) {
-        MediaType mediaType = MediaType.parse("application/xml; charset=utf-8");
+        MediaType mediaType = MediaType.parse("application/json; charset=utf-8");
         RequestBody requestBody = RequestBody.create(xmlData, mediaType);
         getRequestClient().newCall(new Request.Builder()
-                .addHeader("Content-Type", "application/xml")
+                .addHeader("Content-Type", "application/json")
+                .addHeader("TC-SUPER-APP-VERSION", "2.0")
                 .url(apiUrl)
                 .post(requestBody)
                 .build()).enqueue(callback);
