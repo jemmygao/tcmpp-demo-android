@@ -1,7 +1,14 @@
 import os
+import shutil
 import requests
 from lxml import etree
 import argparse
+
+def clean_directory(path):
+    """Clean directory to avoid old SDK versions remaining"""
+    if os.path.exists(path):
+        shutil.rmtree(path)
+    os.makedirs(path, exist_ok=True)
 
 def download_file(url, local_path):
     response = requests.get(url)
@@ -26,6 +33,9 @@ def download_dependency(dependency, base_url, local_repo):
     download_file(pom_url, pom_local_path)
 
 def main(local_repo = "offline_sdks/tcmpp-local-repo"):
+    # Clean target directory to avoid old versions remaining
+    clean_directory(local_repo)
+    
     base_url = "https://maven-dev.tcmppcloud.com/fHKFBbEjd/repository/maven-public/"
     dependencies = [
         ("com.tencent.tcmpp.android", "mini_annotation", "1.5.1", "jar"),

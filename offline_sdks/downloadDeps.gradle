@@ -8,7 +8,11 @@ configurations {
         exclude(group: "androidx.interpolator")
         exclude(group: "androidx.core")
         exclude(group: "androidx.appcompat")
+        exclude(group: "androidx.constraintlayout")
+        exclude(group: "androidx.viewpager2")
         exclude(group: "org.jetbrains.kotlin")
+        exclude(group: "com.google.android.material")
+        exclude(group: "com.github.bumptech.glide")
         exclude(group: "com.tencent.tcmpp.android",module:"mini_core")
     }
     tcmppCore {
@@ -19,7 +23,11 @@ configurations {
         exclude(group: "androidx.interpolator")
         exclude(group: "androidx.core")
         exclude(group: "androidx.appcompat")
+        exclude(group: "androidx.constraintlayout")
+        exclude(group: "androidx.viewpager2")
         exclude(group: "org.jetbrains.kotlin")
+        exclude(group: "com.google.android.material")
+        exclude(group: "com.github.bumptech.glide")
     }
     mapDeps
 }
@@ -74,6 +82,8 @@ dependencies {
 
     tcmppDeps(project.ext.TCMPPDeps['mini_extra_media_support_lite'])
     tcmppDeps(project.ext.TCMPPDeps['mini_pdflib'])
+    tcmppDeps(project.ext.TCMPPDeps['mini_extra_playlet'])
+    tcmppDeps(project.ext.TCMPPDeps['TUIDramaPlayer'])
 
 
 //    //calendar support
@@ -90,15 +100,28 @@ dependencies {
 }
 
 task downloadTcmppDeps(type: Copy) {
+    def targetDir = "${project.rootDir}/../offline_sdks/tcmpp-mini-core"
+    
+    // Clean target directory before copying to avoid old SDK versions remaining
+    doFirst {
+        delete targetDir
+    }
+    
     from configurations.tcmppCore
-    into "${project.rootDir}/../offline_sdks/tcmpp-mini-core"
     from configurations.tcmppDeps
-    into "${project.rootDir}/../offline_sdks/tcmpp-mini-core"
+    into targetDir
 }
 
 task downloadMapDeps(type: Copy) {
+    def targetDir = "${project.rootDir}/../offline_sdks/tcmpp-tencent-map"
+    
+    // Clean target directory before copying to avoid old SDK versions remaining
+    doFirst {
+        delete targetDir
+    }
+    
     from configurations.mapDeps
-    into "${project.rootDir}/../offline_sdks/tcmpp-tencent-map"
+    into targetDir
 }
 
 task tcmppLocalRepo(type: Exec) {

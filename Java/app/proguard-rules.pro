@@ -20,4 +20,3 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 -keep class com.tencent.tmf.mini.api.bean.MiniApp{*;}
--keep class com.tencent.** { *; }

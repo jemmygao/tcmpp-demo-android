@@ -26,3 +26,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "TCMPP-Demo"
 include ':app'
+include ':deps'
+project(':deps').projectDir = new File('../deps.gradle')
+include 'offline_sdk'
+project(':offline_sdk').projectDir = new File('../offline_sdks/downloadDeps.gradle')

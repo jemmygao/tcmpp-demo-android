@@ -24,7 +24,9 @@ ext {
             'mini_extra_v8'            : "com.tencent.tcmpp.android:mini_extra_v8:latest.release",
             'mini_extra_mbengine'            : "com.tencent.tcmpp.android:mini_extra_mbengine:latest.release",
             'mini_extra_admob'            : "com.tencent.tcmpp.android:mini_extra_admob:latest.release",
-            'mini_extra_video'           : "com.tencent.tcmpp.android:mini_extra_video:latest.release"
+            'mini_extra_video'           : "com.tencent.tcmpp.android:mini_extra_video:latest.release",
+            'mini_extra_playlet'           : "com.tencent.tcmpp.android:mini_extra_playlet:latest.release",
+            'TUIDramaPlayer'           : "com.tencent.tcmpp.android:TUIDramaPlayer:latest.release"
     ]
 
     TencentMapDeps = [
